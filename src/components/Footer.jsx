@@ -22,12 +22,7 @@ const Footer = () => {
       { name: "Guides pratiques", href: "#guides" },
       { name: "Blog", href: "#blog" }
     ],
-    company: [
-      { name: "À propos", href: "#about" },
-      { name: "Notre équipe", href: "#team" },
-      { name: "Carrières", href: "#careers" },
-      { name: "Partenaires", href: "#partners" }
-    ],
+
     legal: [
       { name: "Mentions légales", href: "#legal" },
       { name: "Politique de confidentialité", href: "#privacy" },
