@@ -22,7 +22,12 @@ const Footer = () => {
       { name: "Guides pratiques", href: "#guides" },
       { name: "Blog", href: "#blog" }
     ],
-
+    company: [
+      { name: "À propos", href: "#about" },
+      { name: "Notre équipe", href: "#team" },
+      { name: "Carrières", href: "#careers" },
+      { name: "Partenaires", href: "#partners" }
+    ],
     legal: [
       { name: "Mentions légales", href: "#legal" },
       { name: "Politique de confidentialité", href: "#privacy" },
@@ -103,24 +108,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Entreprise */}
-          <div>
-            <h3 className="text-base md:text-lg font-bold mb-4 md:mb-5 text-emerald-400">
-              Entreprise
-            </h3>
-            <ul className="space-y-2 md:space-y-3">
-              {footerLinks.company.map((link, index) => (
-                <li key={index}>
-                  <a 
-                    href={link.href}
-                    className="text-sm md:text-base text-gray-300 hover:text-emerald-400 transition-colors inline-block hover:translate-x-1 duration-200"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+     
 
           {/* Légal */}
           <div>
