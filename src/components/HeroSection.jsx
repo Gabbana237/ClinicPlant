@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Logo from '../../public/Gemini_Generated_Image_lg15a9lg15a9lg15-removebg-preview.png';
 
 const HeroSection = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -33,7 +34,7 @@ const HeroSection = () => {
   <div className="max-w-7xl mx-auto flex justify-between items-center">
     
     <motion.img
-      src="../../public/Gemini_Generated_Image_lg15a9lg15a9lg15-removebg-preview.png"
+      src={Logo}
       alt="Logo Clinique des Plantes"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}

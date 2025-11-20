@@ -8,7 +8,10 @@ import {
   Sparkles,
   Check
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import image1 from '../../public/images/1.png';
+import image2 from '../../public/images/2.png';
+import image3 from '../../public/images/3.png';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -42,7 +45,7 @@ const ServicesSection = () => {
         "Zoom automatique sur les zones affectées",
         "Guidage pour une capture optimale"
       ],
-      image: "../../public/images/1.png",
+      image: image1,
       color: "from-emerald-400 to-teal-500",
       reverse: false
     },
@@ -56,7 +59,7 @@ const ServicesSection = () => {
         "Analyse en moins de 30 secondes",
         "Technologie de deep learning avancée"
       ],
-      image: "../../public/images/2.png",
+      image:  image2,
       color: "from-cyan-400 to-blue-500",
       reverse: true
     },
@@ -70,7 +73,7 @@ const ServicesSection = () => {
         "Niveau de gravité indiqué",
         "Causes et facteurs de risque"
       ],
-      image: "../../public/images/3.png",
+      image: image3,
       color: "from-blue-400 to-indigo-500",
       reverse: false
     },
