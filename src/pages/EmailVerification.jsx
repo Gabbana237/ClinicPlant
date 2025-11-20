@@ -1,118 +1,81 @@
-import React, { useState, useRef, useEffect } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Loader2, CheckCircle2, X, Mail } from 'lucide-react';
 
 const EmailVerification = () => {
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
-  const [resendLoading, setResendLoading] = useState(false);
-  const [timer, setTimer] = useState(60);
-  const [canResend, setCanResend] = useState(false);
+  const [toast, setToast] = useState(null);
 
-  const inputRefs = useRef([]);
-  const navigate = useNavigate();
-
-  // email récupéré du localStorage (défini à l’étape précédente)
-  const email = localStorage.getItem("reset_email") || "user@example.com";
-
-  /* ----- Countdown pour renvoi du code ----- */
-  useEffect(() => {
-    let interval;
-    if (timer > 0 && !canResend) {
-      interval = setInterval(() => setTimer((t) => t - 1), 1000);
-    } else if (timer === 0) {
-      setCanResend(true);
-    }
-    return () => clearInterval(interval);
-  }, [timer, canResend]);
-
-  /* ----- Gestion des inputs (1 chiffre par case) ----- */
-  const handleInputChange = (i, val) => {
-    if (val.length > 1) return;
-    const newCode = [...code];
-    newCode[i] = val;
-    setCode(newCode);
-    if (val && i < 5) inputRefs.current[i + 1].focus();
-  };
-
-  const handleKeyDown = (i, e) => {
-    if (e.key === "Backspace" && !code[i] && i > 0) {
-      inputRefs.current[i - 1].focus();
-    }
-    if (!/[0-9]/.test(e.key) && !["Backspace", "Delete", "Tab"].includes(e.key)) {
-      e.preventDefault();
-    }
-  };
-
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const paste = e.clipboardData.getData("text");
-    if (/^\\d{6}$/.test(paste)) {
-      setCode(paste.split(""));
-      inputRefs.current[5].focus();
-    }
-  };
-
-  /* ----- Vérifier le code ----- */
-  const handleSubmit = async () => {
-    const verificationCode = code.join("");
-    if (verificationCode.length !== 6) {
-      setErrorMsg("Veuillez entrer un code à 6 chiffres.");
-      return;
-    }
-
+  // 🔘 Simule le flux : clic → loader → toast
+  const handleVerify = () => {
     setLoading(true);
-    setErrorMsg("");
-    setSuccessMsg("");
+    setToast(null); // masquer ancien toast
 
-    try {
-      await axios.post("http://172.20.10.2:8000/api/password/verify", {
-        email,
-        code: verificationCode,
-      });
-      localStorage.setItem("resetEmail", email);
-      setSuccessMsg("Email vérifié avec succès ! Redirection en cours...");
-      setTimeout(() => navigate("/reset", { state: { email } }), 2000);
-    } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        "Code de vérification incorrect. Veuillez réessayer.";
-      setErrorMsg(msg);
-    } finally {
+    // Simule la vérification (2s)
+    setTimeout(() => {
       setLoading(false);
-    }
+      // Affiche le toast de confirmation
+      setToast({ message: " Email vérifié ! Connexion en cours...", type: "success" });
+
+      // Masque le toast après 4s
+      setTimeout(() => setToast(null), 4000);
+    }, 2000);
   };
 
-  /* ----- Renvoyer le code ----- */
-  const handleResendCode = async () => {
-    setResendLoading(true);
-    setErrorMsg("");
-    try {
-      await axios.post("http://172.20.10.2:8000/api/resend-verification", {
-        email,
-      });
-      setSuccessMsg("Un nouveau code a été envoyé à votre email.");
-      setTimer(60);
-      setCanResend(false);
-      setCode(["", "", "", "", "", ""]);
-      inputRefs.current[0].focus();
-    } catch (err) {
-      setErrorMsg(
-        err.response?.data?.message ||
-        "Erreur lors du renvoi du code. Veuillez réessayer."
-      );
-    } finally {
-      setResendLoading(false);
-    }
-  };
+  // ——— Données statiques pour l’UI ———
+  const email = "votre@email.com";
+  const code = ["", "", "", "", "", ""];
+  const canResend = true;
+  const resendLoading = false;
 
-  /* ============ UI ============ */
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white px-4">
-      {/* Titre */}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-emerald-50 to-white px-4 relative">
+      {/* 🍞 Toast de confirmation */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 animate-slide-in">
+          <div className={`flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl max-w-md ${
+            toast.type === 'success' 
+              ? 'bg-emerald-600 text-white' 
+              : 'bg-red-600 text-white'
+          }`}>
+            <CheckCircle2 className="h-6 w-6 flex-shrink-0" />
+            <p className="font-medium">{toast.message}</p>
+            <button 
+              onClick={() => setToast(null)}
+              className="ml-auto hover:opacity-80 transition-opacity"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 🌀 Loader attrayant (comme dans Login) */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl">
+            <div className="relative">
+              <Mail className="h-16 w-16 text-emerald-600 animate-bounce" />
+              <div className="absolute inset-0 h-16 w-16">
+                <Loader2 className="h-16 w-16 text-yellow-400 animate-spin" />
+              </div>
+            </div>
+            <p className="text-lg font-semibold text-emerald-800">Vérification en cours...</p>
+            <div className="flex gap-2">
+              <div className="h-2 w-2 bg-emerald-600 rounded-full animate-pulse"></div>
+              <div className="h-2 w-2 bg-emerald-600 rounded-full animate-pulse delay-100"></div>
+              <div className="h-2 w-2 bg-emerald-600 rounded-full animate-pulse delay-200"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* En-tête */}
       <div className="mb-8 text-center">
+        <div className="flex justify-center mb-4">
+          <div className="bg-emerald-100 p-4 rounded-full">
+            <Mail className="h-10 w-10 text-emerald-600" />
+          </div>
+        </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-emerald-800">
           La Clinique Des Plantes
         </h1>
@@ -121,7 +84,8 @@ const EmailVerification = () => {
         </p>
       </div>
 
-      <div className="w-full max-w-md p-5 bg-white rounded-xl shadow-lg">
+      {/* Formulaire */}
+      <div className="w-full max-w-md p-5 bg-white rounded-xl shadow-lg border border-emerald-100">
         <p className="text-sm text-gray-600 text-center mb-2">
           Nous avons envoyé un code à :
         </p>
@@ -129,73 +93,73 @@ const EmailVerification = () => {
           {email}
         </p>
 
-        {/* Inputs code */}
         <div className="flex gap-2 justify-center mb-6">
-          {code.map((d, i) => (
+          {code.map((_, i) => (
             <input
               key={i}
-              ref={(el) => (inputRefs.current[i] = el)}
               type="text"
               maxLength="1"
-              value={d}
-              onChange={(e) => handleInputChange(i, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(i, e)}
-              onPaste={handlePaste}
               className="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-black"
             />
           ))}
         </div>
 
-        {/* Messages */}
-        {errorMsg && (
-          <p className="text-red-600 text-sm mb-4 text-center">{errorMsg}</p>
-        )}
-        {successMsg && (
-          <p className="text-green-600 text-sm mb-4 text-center">
-            {successMsg}
-          </p>
-        )}
-
-        {/* Bouton vérifier */}
+        {/* Bouton */}
         <button
-          onClick={handleSubmit}
-          disabled={loading || code.join("").length !== 6}
+          onClick={handleVerify}
+          disabled={loading}
           style={{ backgroundColor: "#FACC15" }}
-          className="w-full py-3 px-4 text-emerald-800 font-semibold rounded-lg hover:bg-yellow-300 transition-colors duration-200 disabled:opacity-50 mb-4"
+          className="w-full py-3 px-4 text-emerald-800 font-semibold rounded-xl hover:bg-yellow-300 transition-colors duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
         >
-          {loading ? "Vérification..." : "Vérifier le code"}
+          {loading ? (
+            <>
+              <Loader2 className="animate-spin h-5 w-5" /> Vérification...
+            </>
+          ) : (
+            "Vérifier le code"
+          )}
         </button>
 
-        {/* Renvoi du code */}
-        <div className="text-center">
-          {!canResend ? (
-            <p className="text-sm text-gray-600">
-              Renvoyer le code dans {timer} s
-            </p>
-          ) : (
+        {/* Renvoi */}
+        <div className="text-center mt-4">
+          {canResend ? (
             <button
-              onClick={handleResendCode}
               disabled={resendLoading}
-              className="text-sm text-yellow-500 hover:text-yellow-600 disabled:opacity-50"
+              className="text-sm text-yellow-500 hover:text-yellow-600 disabled:opacity-50 font-medium"
             >
-              {resendLoading ? "Envoi..." : "Renvoyer le code"}
+              Renvoyer le code
             </button>
+          ) : (
+            <p className="text-sm text-gray-600">Renvoyer dans 30 s</p>
           )}
         </div>
       </div>
 
-      {/* liens */}
+      {/* Liens */}
       <div className="mt-6 text-center w-full max-w-md text-sm px-4">
-        <a href="/login" className="text-yellow-500 hover:text-yellow-600">
+        <a href="/login" className="text-yellow-500 hover:text-yellow-600 font-medium">
           Retour à la connexion
         </a>
         <p className="mt-3">
           Problème ?{" "}
-          <a href="/support" className="text-yellow-500 hover:text-yellow-600">
+          <a href="/support" className="text-yellow-500 hover:text-yellow-600 font-medium">
             Contactez le support
           </a>
         </p>
       </div>
+
+      {/* Animations CSS (identiques à Login) */}
+      <style jsx>{`
+        @keyframes slide-in {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+      `}</style>
     </div>
   );
 };

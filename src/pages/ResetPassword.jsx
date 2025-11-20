@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle2, X, Mail } from "lucide-react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // 🔹 ajouté pour redirection propre
 
 const ResetPassword = () => {
   /* ---------------------- states ---------------------- */
@@ -11,7 +12,9 @@ const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const [toast, setToast] = useState(null); // 🔹 remplace successMsg par toast
+
+  const navigate = useNavigate(); // 🔹 pour une redirection React Router
 
   /* --------- récupérer l'email depuis localStorage -------- */
   useEffect(() => {
@@ -49,6 +52,7 @@ const ResetPassword = () => {
     if (/\W/.test(pwd)) s++;
     return s;
   };
+
   const strength = getPasswordStrength(password);
   const strengthColor =
     strength < 2 ? "bg-red-500" : strength < 4 ? "bg-yellow-500" : "bg-green-500";
@@ -58,9 +62,8 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
-    setSuccessMsg("");
+    setToast(null);
 
-    // validation
     const err = validatePassword(password);
     if (err) return setErrorMsg(err);
     if (password !== confirmPassword)
@@ -74,25 +77,72 @@ const ResetPassword = () => {
         password,
         password_confirmation: confirmPassword,
       });
-      setSuccessMsg("Mot de passe réinitialisé avec succès ! Redirection...");
+
+      // ✅ Affiche toast de succès
+      setToast({ message: "✅ Mot de passe réinitialisé avec succès !", type: "success" });
+
       // Nettoyer
       localStorage.removeItem("resetEmail");
-      setTimeout(() => (window.location.href = "/login"), 2000);
+
+      // 🔹 Redirection après 1.5s (pour voir le toast)
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
     } catch (err) {
       setErrorMsg(
         err.response?.data?.message ||
         "Erreur lors de la réinitialisation. Veuillez réessayer."
       );
-    } finally {
       setLoading(false);
     }
   };
 
   /* ----------------------- UI ------------------------ */
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-emerald-50 to-white px-4 relative">
+      {/* 🍞 Toast de confirmation */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 animate-slide-in">
+          <div className="flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl max-w-md bg-emerald-600 text-white">
+            <CheckCircle2 className="h-6 w-6 flex-shrink-0" />
+            <p className="font-medium">{toast.message}</p>
+            <button 
+              onClick={() => setToast(null)}
+              className="ml-auto hover:opacity-80 transition-opacity"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 🌀 Loader attrayant */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl">
+            <div className="relative">
+              <Mail className="h-16 w-16 text-emerald-600 animate-bounce" />
+              <div className="absolute inset-0 h-16 w-16">
+                <Loader2 className="h-16 w-16 text-yellow-400 animate-spin" />
+              </div>
+            </div>
+            <p className="text-lg font-semibold text-emerald-800">Réinitialisation...</p>
+            <div className="flex gap-2">
+              <div className="h-2 w-2 bg-emerald-600 rounded-full animate-pulse"></div>
+              <div className="h-2 w-2 bg-emerald-600 rounded-full animate-pulse delay-100"></div>
+              <div className="h-2 w-2 bg-emerald-600 rounded-full animate-pulse delay-200"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Logo */}
       <div className="mb-8 text-center">
+        <div className="flex justify-center mb-4">
+          <div className="bg-emerald-100 p-4 rounded-full">
+            <Mail className="h-10 w-10 text-emerald-600" />
+          </div>
+        </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-emerald-800">
           La Clinique Des Plantes
         </h1>
@@ -102,7 +152,7 @@ const ResetPassword = () => {
       </div>
 
       {/* Formulaire */}
-      <div className="w-full max-w-md p-5 bg-white rounded-xl shadow-lg">
+      <div className="w-full max-w-md p-5 bg-white rounded-xl shadow-lg border border-emerald-100">
         <div className="mb-6 text-center">
           <p className="text-sm text-gray-600">
             Choisissez un mot de passe pour&nbsp;
@@ -138,19 +188,11 @@ const ResetPassword = () => {
                 {[...Array(5)].map((_, i) => (
                   <div
                     key={i}
-                    className={`h-1 flex-1 rounded ${i < strength ? strengthColor : "bg-gray-200"
-                      }`}
+                    className={`h-1 flex-1 rounded ${i < strength ? strengthColor : "bg-gray-200"}`}
                   />
                 ))}
               </div>
-              <p
-                className={`text-xs ${strength < 2
-                    ? "text-red-500"
-                    : strength < 4
-                      ? "text-yellow-500"
-                      : "text-green-500"
-                  }`}
-              >
+              <p className={`text-xs ${strength < 2 ? "text-red-500" : strength < 4 ? "text-yellow-500" : "text-green-500"}`}>
                 Force : {strengthText}
               </p>
             </div>
@@ -180,10 +222,7 @@ const ResetPassword = () => {
             </button>
           </div>
           {confirmPassword && (
-            <p
-              className={`text-xs mt-1 ${password === confirmPassword ? "text-green-500" : "text-red-500"
-                }`}
-            >
+            <p className={`text-xs mt-1 ${password === confirmPassword ? "text-green-500" : "text-red-500"}`}>
               {password === confirmPassword
                 ? "✓ Les mots de passe correspondent"
                 : "✗ Les mots de passe ne correspondent pas"}
@@ -215,19 +254,16 @@ const ResetPassword = () => {
           </ul>
         </div>
 
-        {/* Messages */}
+        {/* Message d'erreur */}
         {errorMsg && (
-          <p className="text-red-600 text-sm mb-4 text-center">{errorMsg}</p>
-        )}
-        {successMsg && (
-          <p className="text-green-600 text-sm mb-4 text-center">
-            {successMsg}
+          <p className="text-red-600 text-sm mb-4 text-center flex items-center justify-center gap-2">
+            <X className="h-4 w-4" /> {errorMsg}
           </p>
         )}
 
         {/* Bouton */}
         <button
-          onClick={handleSubmit}  style={{ backgroundColor: "#FACC15" }}
+          onClick={handleSubmit}
           disabled={
             loading ||
             !password ||
@@ -235,18 +271,37 @@ const ResetPassword = () => {
             password !== confirmPassword ||
             !email
           }
-        
-          className="w-full py-3 font-semibold rounded-lg hover:bg-yellow-300 disabled:opacity-50 text-emerald-800"
+          style={{ backgroundColor: "#FACC15" }}
+          className="w-full py-3 font-semibold rounded-xl hover:bg-yellow-300 disabled:opacity-50 text-emerald-800 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
         >
-          {loading ? "Réinitialisation..." : "Réinitialiser le mot de passe"}
+          {loading ? (
+            <>
+              <Loader2 className="animate-spin h-5 w-5" /> Réinitialisation...
+            </>
+          ) : (
+            "Réinitialiser le mot de passe"
+          )}
         </button>
       </div>
 
       <div className="mt-6 text-sm text-center max-w-md">
-        <a href="/login" className="text-yellow-500 hover:text-yellow-600">
+        <a href="/login" className="text-yellow-500 hover:text-yellow-600 font-medium">
           Retour à la connexion
         </a>
       </div>
+
+      {/* Animations */}
+      <style jsx>{`
+        @keyframes slide-in {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+      `}</style>
     </div>
   );
 };

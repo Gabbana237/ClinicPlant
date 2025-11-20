@@ -27,9 +27,10 @@ const PlantDiseaseDetection = () => {
   const [selectedDisease, setSelectedDisease] = useState(null);
   const fileInputRef = useRef(null);
 
-  const API_URL = 'http://localhost:5000'; // Ton API Flask
+  // URL de l'API Flask
+  const API_URL = 'http://localhost:5000';
 
-  // Base de données locale pour afficher les traitements
+  // Base de données locale des traitements
   const treatmentDatabase = {
     "Pepper_bell__Bacterial_spot": {
       name: "Tache bactérienne du poivron",
@@ -65,15 +66,15 @@ const PlantDiseaseDetection = () => {
       severity: "Aucune",
       description: "Votre tomate est en parfaite santé !",
       symptoms: ["Feuillage vert", "Fruits abondants"],
-      causes: ["Conditions optimales"],
+      causes: ["Soins appropriés"],
       treatment: {
-        maintenance: ["Arrosage régulier", "Fertilisation équilibrée"]
+        maintenance: ["Maintenir un bon arrosage et fertilisation"]
       }
-    },
-    // Tu peux ajouter toutes les autres maladies ici...
+    }
+    // Ajoutez ici toutes vos autres maladies si nécessaire...
   };
 
-  // Appel à l'API Flask
+  // Fonction appelant l'API Flask
   const predictDisease = async (file) => {
     const formData = new FormData();
     formData.append("image", file);
@@ -88,7 +89,7 @@ const PlantDiseaseDetection = () => {
 
       const data = await response.json();
 
-      // Construire la clé attendue dans treatmentDatabase
+      // Création d'une clé correspondante pour le lookup local
       const predictedClassName = `${data.plant}__${data.disease.replace(/\s+/g, '_')}`;
       const matchedDiseaseKey = Object.keys(treatmentDatabase).find(
         key => key.toLowerCase() === predictedClassName.toLowerCase()
@@ -211,6 +212,7 @@ const PlantDiseaseDetection = () => {
             treatment: diseaseData.treatment?.immediate?.[0] || 'Aucun traitement spécifique requis.'
           });
         } catch (error) {
+          console.error(`Erreur pour ${file.name}:`, error);
           results.push({
             id: file.id,
             image: file.url,
@@ -229,6 +231,7 @@ const PlantDiseaseDetection = () => {
       setCurrentPage('results');
     } catch (error) {
       setApiError('Erreur lors de l\'analyse des images');
+      console.error('Erreur globale:', error);
     } finally {
       setIsAnalyzing(false);
     }
@@ -260,7 +263,6 @@ const PlantDiseaseDetection = () => {
   const UploadPage = () => (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12">
-        {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mb-6">
             <Leaf className="w-10 h-10 text-white" />
@@ -272,7 +274,7 @@ const PlantDiseaseDetection = () => {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          {/* Erreurs API */}
+          {/* Affichage des erreurs */}
           {apiError && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
               <div className="flex items-center">
@@ -296,20 +298,32 @@ const PlantDiseaseDetection = () => {
               <div className="absolute inset-0 bg-blue-500/10 rounded-xl animate-pulse"></div>
             )}
             <div className="text-center relative z-10">
-              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-6 transition-all ${isDragging ? 'bg-blue-100 scale-110' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                <Upload className={`w-10 h-10 ${isDragging ? 'text-blue-600 animate-bounce' : 'text-gray-600'}`} />
+              <div
+                className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-6 transition-all duration-300 ${
+                  isDragging ? 'bg-blue-100 scale-110' : 'bg-gray-100 hover:bg-gray-200'
+                }`}
+              >
+                <Upload className={`w-10 h-10 transition-all duration-300 ${isDragging ? 'text-blue-600 animate-bounce' : 'text-gray-600'}`} />
               </div>
-              <h3 className={`text-2xl font-semibold mb-3 ${isDragging ? 'text-blue-700' : 'text-gray-900'}`}>
+              <h3
+                className={`text-2xl font-semibold mb-3 transition-colors duration-300 ${
+                  isDragging ? 'text-blue-700' : 'text-gray-900'
+                }`}
+              >
                 {isDragging ? 'Déposez vos photos ici' : 'Télécharger des images'}
               </h3>
-              <p className="text-lg mb-2 text-gray-600">Glissez et déposez vos fichiers ici</p>
+              <p className="text-lg mb-2">Glissez et déposez vos fichiers ici</p>
               <p className="text-gray-500 mb-8">ou cliquez pour parcourir vos fichiers</p>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="px-8 py-4 rounded-full font-medium text-lg shadow-lg hover:scale-105 transition-transform text-gray-900"
+                className="px-8 py-4 rounded-full font-medium text-lg transition-all duration-300 hover:scale-105 shadow-lg text-gray-900"
                 style={{ backgroundColor: "#FACC15" }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = "#EAB308"}
-                onMouseLeave={(e) => e.target.style.backgroundColor = "#FACC15"}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "#EAB308";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "#FACC15";
+                }}
               >
                 Sélectionner des images
               </button>
@@ -325,7 +339,7 @@ const PlantDiseaseDetection = () => {
                 Photos téléchargées ({files.length})
               </h3>
               <div className="space-y-4">
-                {files.map(file => (
+                {files.map((file) => (
                   <div key={file.id} className="flex items-center p-4 bg-gray-50 rounded-lg">
                     <img src={file.url} alt={file.name} className="w-16 h-16 object-cover rounded-md mr-4" />
                     <div className="flex-1 min-w-0">
@@ -339,7 +353,7 @@ const PlantDiseaseDetection = () => {
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-1.5">
                             <div
-                              className="bg-green-600 h-1.5 rounded-full transition-all"
+                              className="bg-green-600 h-1.5 rounded-full transition-all duration-300"
                               style={{ width: `${uploadProgress[file.id] || 0}%` }}
                             ></div>
                           </div>
@@ -365,24 +379,30 @@ const PlantDiseaseDetection = () => {
           )}
 
           {/* Bouton d'analyse */}
-          {files.some(f => f.status === 'completed') && (
+          {files.some((f) => f.status === 'completed') && (
             <div className="text-center">
               <button
                 onClick={startAnalysis}
-                disabled={!files.some(f => f.status === 'completed') || isAnalyzing}
+                disabled={!files.some((f) => f.status === 'completed') || isAnalyzing}
                 className={`px-8 py-4 rounded-lg font-medium text-lg transition-all duration-200 flex items-center justify-center mx-auto space-x-3 ${
-                  !files.some(f => f.status === 'completed') || isAnalyzing
+                  !files.some((f) => f.status === 'completed') || isAnalyzing
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'text-gray-900 shadow-lg hover:scale-105'
                 }`}
-                style={{
-                  backgroundColor: '#FACC15'
-                }}
+                style={
+                  !files.some((f) => f.status === 'completed') || isAnalyzing
+                    ? {}
+                    : { backgroundColor: '#FACC15' }
+                }
                 onMouseEnter={(e) => {
-                  if (!isAnalyzing) e.target.style.backgroundColor = '#EAB308';
+                  if (!isAnalyzing) {
+                    e.target.style.backgroundColor = '#EAB308';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  if (!isAnalyzing) e.target.style.backgroundColor = '#FACC15';
+                  if (!isAnalyzing) {
+                    e.target.style.backgroundColor = '#FACC15';
+                  }
                 }}
               >
                 {isAnalyzing ? (
@@ -420,23 +440,31 @@ const PlantDiseaseDetection = () => {
         </div>
         <div className="max-w-6xl mx-auto">
           <div className="grid gap-8 mb-8">
-            {analysisResults.map(result => (
+            {analysisResults.map((result) => (
               <div key={result.id} className="bg-white rounded-lg shadow-sm border overflow-hidden">
                 <div className="md:flex">
                   <div className="md:w-1/3">
-                    <img src={result.image} alt={result.fileName} className="w-full h-64 md:h-full object-cover" />
+                    <img
+                      src={result.image}
+                      alt={result.fileName}
+                      className="w-full h-64 md:h-full object-cover"
+                    />
                   </div>
                   <div className="md:w-2/3 p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">{result.fileName}</h3>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                          {result.fileName}
+                        </h3>
                         <div className="flex items-center space-x-4 mb-3">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             🌱 {result.plant}
                           </span>
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            result.isHealthy ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                              result.isHealthy ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}
+                          >
                             {result.isHealthy ? (
                               <CheckCircle className="w-4 h-4 mr-1" />
                             ) : (
@@ -447,30 +475,40 @@ const PlantDiseaseDetection = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={`text-2xl font-bold ${
-                          result.isHealthy ? 'text-green-600' : 'text-red-600'
-                        }`}>
+                        <div
+                          className={`text-2xl font-bold ${
+                            result.isHealthy ? 'text-green-600' : 'text-red-600'
+                          }`}
+                        >
                           {result.confidence}
                         </div>
                         <div className="text-sm text-gray-500">Confiance</div>
                       </div>
                     </div>
-                    <div className={`rounded-lg p-4 ${
-                      result.isHealthy ? 'bg-green-50' : 'bg-blue-50'
-                    }`}>
+                    <div
+                      className={`rounded-lg p-4 ${
+                        result.isHealthy ? 'bg-green-50' : 'bg-blue-50'
+                      }`}
+                    >
                       <div className="flex items-start">
-                        <Droplets className={`w-5 h-5 mr-2 mt-0.5 flex-shrink-0 ${
-                          result.isHealthy ? 'text-green-600' : 'text-blue-600'
-                        }`} />
+                        <Droplets
+                          className={`w-5 h-5 mr-2 mt-0.5 flex-shrink-0 ${
+                            result.isHealthy ? 'text-green-600' : 'text-blue-600'
+                          }`}
+                        />
                         <div>
-                          <h4 className={`font-medium mb-1 ${
-                            result.isHealthy ? 'text-green-900' : 'text-blue-900'
-                          }`}>
+                          <h4
+                            className={`font-medium mb-1 ${
+                              result.isHealthy ? 'text-green-900' : 'text-blue-900'
+                            }`}
+                          >
                             {result.isHealthy ? 'Recommandations' : 'Traitement recommandé'}
                           </h4>
-                          <p className={`text-sm ${
-                            result.isHealthy ? 'text-green-800' : 'text-blue-800'
-                          }`}>
+                          <p
+                            className={`text-sm ${
+                              result.isHealthy ? 'text-green-800' : 'text-blue-800'
+                            }`}
+                          >
                             {result.treatment}
                           </p>
                         </div>
@@ -495,7 +533,7 @@ const PlantDiseaseDetection = () => {
           <div className="flex justify-center space-x-4">
             <button
               onClick={resetAnalysis}
-              className="px-6 py-3 border border-yellow-500 rounded-lg font-medium text-gray-900 hover:scale-105 transition-all flex items-center space-x-2 shadow-md"
+              className="px-6 py-3 border border-yellow-500 rounded-lg font-medium text-gray-900 hover:scale-105 transition-all duration-200 flex items-center space-x-2 shadow-md"
               style={{ backgroundColor: '#FACC15' }}
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = '#EAB308';
@@ -546,14 +584,17 @@ const PlantDiseaseDetection = () => {
               <h1 className="text-4xl font-bold text-gray-900 mb-4">Guide de traitement</h1>
               <div className="flex items-center justify-center space-x-4 mb-6">
                 <span className="text-2xl font-semibold text-gray-800">{diseaseData.name}</span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getSeverityColor(diseaseData.severity)}`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${getSeverityColor(
+                    diseaseData.severity
+                  )}`}
+                >
                   {diseaseData.severity}
                 </span>
               </div>
             </div>
           </div>
           <div className="max-w-4xl mx-auto">
-            {/* Description */}
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                 <Leaf className="w-5 h-5 mr-2 text-green-600" />
@@ -561,8 +602,6 @@ const PlantDiseaseDetection = () => {
               </h2>
               <p className="text-gray-700 leading-relaxed">{diseaseData.description}</p>
             </div>
-
-            {/* Symptômes et Causes */}
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -572,7 +611,7 @@ const PlantDiseaseDetection = () => {
                 <ul className="space-y-2">
                   {diseaseData.symptoms.map((symptom, index) => (
                     <li key={index} className="flex items-start">
-                      <div className="w-2 h-2 bg-red-400 rounded-full mt-2 mr-3"></div>
+                      <div className="w-2 h-2 bg-red-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                       <span className="text-gray-700">{symptom}</span>
                     </li>
                   ))}
@@ -586,15 +625,13 @@ const PlantDiseaseDetection = () => {
                 <ul className="space-y-2">
                   {diseaseData.causes.map((cause, index) => (
                     <li key={index} className="flex items-start">
-                      <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2 mr-3"></div>
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                       <span className="text-gray-700">{cause}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
-
-            {/* Plan de traitement */}
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
                 <Droplets className="w-5 h-5 mr-2 text-blue-600" />
@@ -610,56 +647,8 @@ const PlantDiseaseDetection = () => {
                     <ul className="space-y-2">
                       {diseaseData.treatment.immediate.map((action, index) => (
                         <li key={index} className="flex items-start">
-                          <CheckCircle className="w-4 h-4 text-red-600 mt-0.5 mr-3" />
+                          <CheckCircle className="w-4 h-4 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
                           <span className="text-gray-700">{action}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {diseaseData.treatment.chemical && (
-                  <div className="border-l-4 border-blue-500 pl-6">
-                    <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
-                      <Thermometer className="w-5 h-5 mr-2" />
-                      Traitement chimique
-                    </h3>
-                    <ul className="space-y-2">
-                      {diseaseData.treatment.chemical.map((treatment, index) => (
-                        <li key={index} className="flex items-start">
-                          <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 mr-3" />
-                          <span className="text-gray-700">{treatment}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {diseaseData.treatment.organic && (
-                  <div className="border-l-4 border-green-500 pl-6">
-                    <h3 className="text-lg font-semibold text-green-900 mb-3 flex items-center">
-                      <Leaf className="w-5 h-5 mr-2" />
-                      Traitement biologique
-                    </h3>
-                    <ul className="space-y-2">
-                      {diseaseData.treatment.organic.map((treatment, index) => (
-                        <li key={index} className="flex items-start">
-                          <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 mr-3" />
-                          <span className="text-gray-700">{treatment}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {diseaseData.treatment.maintenance && (
-                  <div className="border-l-4 border-gray-500 pl-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                      <CheckCircle className="w-5 h-5 mr-2" />
-                      Maintenance
-                    </h3>
-                    <ul className="space-y-2">
-                      {diseaseData.treatment.maintenance.map((maintenance, index) => (
-                        <li key={index} className="flex items-start">
-                          <CheckCircle className="w-4 h-4 text-gray-600 mt-0.5 mr-3" />
-                          <span className="text-gray-700">{maintenance}</span>
                         </li>
                       ))}
                     </ul>
@@ -667,8 +656,6 @@ const PlantDiseaseDetection = () => {
                 )}
               </div>
             </div>
-
-            {/* Prévention */}
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                 <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
@@ -677,14 +664,12 @@ const PlantDiseaseDetection = () => {
               <ul className="space-y-2">
                 {diseaseData.prevention.map((prevention, index) => (
                   <li key={index} className="flex items-start">
-                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 mr-3" />
+                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
                     <span className="text-gray-700">{prevention}</span>
                   </li>
                 ))}
               </ul>
             </div>
-
-            {/* Actions */}
             <div className="flex justify-center space-x-4">
               <button
                 onClick={() => setCurrentPage('results')}
@@ -695,10 +680,14 @@ const PlantDiseaseDetection = () => {
               </button>
               <button
                 onClick={resetAnalysis}
-                className="px-6 py-3 border border-yellow-500 rounded-lg font-medium text-gray-900 hover:scale-105 transition-all flex items-center space-x-2"
-                style={{ backgroundColor: "#FACC15" }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = "#EAB308"}
-                onMouseLeave={(e) => e.target.style.backgroundColor = "#FACC15"}
+                className="px-6 py-3 border border-yellow-500 rounded-lg font-medium text-gray-900 hover:scale-105 transition-colors flex items-center space-x-2"
+                style={{ backgroundColor: '#FACC15' }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#EAB308';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#FACC15';
+                }}
               >
                 <Camera className="w-5 h-5" />
                 <span>Nouvelle analyse</span>
