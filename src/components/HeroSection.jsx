@@ -39,7 +39,7 @@ const HeroSection = () => {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="w-32 sm:w-36 md:w-40"
+      className="w-32 sm:w-28 md:w-40"
     />
 
     {/* Desktop Nav */}
